@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-music_password}
       POSTGRES_DB: ${DB_NAME:-music_analysis}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docs/init.sql:/docker-entrypoint-initdb.d/01-init.sql
