@@ -119,16 +119,16 @@ services:
 
   # Celery Beat Scheduler
   beat:
-    build:
-      context: ./apps/worker-audio
-      dockerfile: Dockerfile
+    image: python:3.11-slim
     container_name: music-analysis-beat
+    working_dir: /app
     environment:
       DATABASE_URL: postgresql://${DB_USER:-music_user}:${DB_PASSWORD:-music_password}@postgres:5432/${DB_NAME:-music_analysis}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      PYTHONUNBUFFERED: 1
     depends_on:
       postgres:
         condition: service_healthy
@@ -136,7 +136,9 @@ services:
         condition: service_healthy
     volumes:
       - ./apps/worker-audio:/app
-    command: celery -A celery_pipeline beat --loglevel=info
+    command: >
+      sh -c "pip install --no-cache-dir celery redis &&
+             celery -A celery_pipeline beat --loglevel=info"
     networks:
       - music-analysis
 
