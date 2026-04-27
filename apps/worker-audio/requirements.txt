@@ -1,5 +1,5 @@
 # Audio Analysis Worker Requirements
-# Optimized for Docker Alpine Linux environment
+# All dependencies for full functionality
 
 # Core dependencies
 celery==5.3.4
@@ -14,16 +14,16 @@ numpy==1.24.3
 scipy==1.11.4
 soundfile==0.12.1
 
-# Essentia (MIR) - Optional, can be installed separately
-# essentia==2.1.0
+# Essentia (MIR) - Music Information Retrieval
+essentia==2.1.0
 
-# Demucs (Source separation) - Optional, can be installed separately
-# demucs==4.0.0
-# torch==2.1.0
-# torchaudio==2.1.0
+# Demucs (Source separation)
+demucs==4.0.0
+torch==2.1.0
+torchaudio==2.1.0
 
-# Whisper (ASR) - Optional, can be installed separately
-# openai-whisper==20231117
+# Whisper (ASR) - Automatic Speech Recognition
+openai-whisper==20231117
 pydub==0.25.1
 
 # LLM integration
