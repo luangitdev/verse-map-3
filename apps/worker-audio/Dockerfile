@@ -1,10 +1,10 @@
-FROM python:3.11-slim
+FROM python:3.11
 
 WORKDIR /app
 
 # Install system dependencies for audio processing
-# Including build tools, audio libraries, and linear algebra libraries
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Using Debian-based image for better compatibility
+RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     g++ \
@@ -16,8 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libopenblas-dev \
     liblapack-dev \
-    libatlas-base-dev \
-    libblas-dev \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
@@ -26,10 +25,8 @@ COPY requirements.txt .
 # Upgrade pip and install build tools
 RUN pip install --upgrade pip setuptools wheel
 
-# Install Python dependencies with optimized flags
-RUN pip install --no-cache-dir \
-    --default-timeout=1000 \
-    -r requirements.txt
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .

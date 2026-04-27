@@ -62,7 +62,7 @@ services:
     networks:
       - music-analysis
 
-  # Audio Analysis Worker
+  # Audio Analysis Worker (Simplified - core dependencies only)
   worker-audio:
     build:
       context: ./apps/worker-audio
@@ -91,12 +91,11 @@ services:
     networks:
       - music-analysis
 
-  # Semantic Analysis Worker
+  # Semantic Analysis Worker (Simplified)
   worker-semantic:
-    build:
-      context: ./apps/worker-semantic
-      dockerfile: Dockerfile
+    image: python:3.11
     container_name: music-analysis-worker-semantic
+    working_dir: /app
     environment:
       DATABASE_URL: postgresql://${DB_USER:-music_user}:${DB_PASSWORD:-music_password}@postgres:5432/${DB_NAME:-music_analysis}
       REDIS_URL: redis://redis:6379/0
@@ -106,6 +105,7 @@ services:
       LLM_MODEL: ${LLM_MODEL:-gpt-3.5-turbo}
       LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.7}
       ENVIRONMENT: ${ENVIRONMENT:-development}
+      PYTHONUNBUFFERED: 1
     depends_on:
       postgres:
         condition: service_healthy
@@ -113,13 +113,15 @@ services:
         condition: service_healthy
     volumes:
       - ./apps/worker-semantic:/app
-    command: celery -A llm_labeler worker --loglevel=info --concurrency=1
+    command: >
+      sh -c "pip install --no-cache-dir celery redis openai langchain pydantic &&
+             celery -A llm_labeler worker --loglevel=info --concurrency=1"
     networks:
       - music-analysis
 
   # Celery Beat Scheduler
   beat:
-    image: python:3.11-slim
+    image: python:3.11
     container_name: music-analysis-beat
     working_dir: /app
     environment:

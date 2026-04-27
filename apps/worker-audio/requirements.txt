@@ -1,5 +1,5 @@
 # Audio Analysis Worker Requirements
-# All dependencies for full functionality
+# Simplified for better Docker compatibility
 
 # Core dependencies
 celery==5.3.4
@@ -15,15 +15,16 @@ scipy==1.11.4
 soundfile==0.12.1
 
 # Essentia (MIR) - Music Information Retrieval
-essentia==2.1.0
+# Note: Essentia requires C++ compilation, install separately if needed
+# essentia==2.1.0
 
-# Demucs (Source separation)
-demucs==4.0.0
-torch==2.1.0
-torchaudio==2.1.0
+# Demucs (Source separation) - Optional heavy dependency
+# demucs==4.0.0
+# torch==2.1.0
+# torchaudio==2.1.0
 
 # Whisper (ASR) - Automatic Speech Recognition
-openai-whisper==20231117
+# openai-whisper==20231117
 pydub==0.25.1
 
 # LLM integration
