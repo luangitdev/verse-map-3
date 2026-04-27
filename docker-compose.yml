@@ -1,25 +1,31 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database with RLS
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
+    container_name: music-analysis-postgres
     environment:
-      POSTGRES_USER: music_user
-      POSTGRES_PASSWORD: music_password
-      POSTGRES_DB: music_analysis
+      POSTGRES_USER: ${DB_USER:-music_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-music_password}
+      POSTGRES_DB: ${DB_NAME:-music_analysis}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docs/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docs/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U music_user"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-music_user}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - music-analysis
 
+  # Redis Cache & Message Broker
   redis:
     image: redis:7-alpine
+    container_name: music-analysis-redis
     ports:
       - "6379:6379"
     volumes:
@@ -29,19 +35,166 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - music-analysis
 
-  # Optional: Flower for Celery monitoring
+  # FastAPI Backend
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: music-analysis-api
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-music_user}:${DB_PASSWORD:-music_password}@postgres:5432/${DB_NAME:-music_analysis}
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - music-analysis
+
+  # Audio Analysis Worker
+  worker-audio:
+    build:
+      context: ./apps/worker-audio
+      dockerfile: Dockerfile
+    container_name: music-analysis-worker-audio
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-music_user}:${DB_PASSWORD:-music_password}@postgres:5432/${DB_NAME:-music_analysis}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      ESSENTIA_CACHE_DIR: /tmp/essentia_cache
+      DEMUCS_MODEL: ${DEMUCS_MODEL:-htdemucs}
+      DEMUCS_DEVICE: ${DEMUCS_DEVICE:-cpu}
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+      WHISPER_DEVICE: ${WHISPER_DEVICE:-cpu}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/worker-audio:/app
+      - /tmp/essentia_cache:/tmp/essentia_cache
+    command: celery -A celery_pipeline worker --loglevel=info --concurrency=2
+    networks:
+      - music-analysis
+
+  # Semantic Analysis Worker
+  worker-semantic:
+    build:
+      context: ./apps/worker-semantic
+      dockerfile: Dockerfile
+    container_name: music-analysis-worker-semantic
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-music_user}:${DB_PASSWORD:-music_password}@postgres:5432/${DB_NAME:-music_analysis}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-gpt-3.5-turbo}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0.7}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/worker-semantic:/app
+    command: celery -A llm_labeler worker --loglevel=info --concurrency=1
+    networks:
+      - music-analysis
+
+  # Celery Beat Scheduler
+  beat:
+    build:
+      context: ./apps/worker-audio
+      dockerfile: Dockerfile
+    container_name: music-analysis-beat
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-music_user}:${DB_PASSWORD:-music_password}@postgres:5432/${DB_NAME:-music_analysis}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/worker-audio:/app
+    command: celery -A celery_pipeline beat --loglevel=info
+    networks:
+      - music-analysis
+
+  # Flower - Celery Monitoring
   flower:
     image: mher/flower:2.0
-    command: celery --broker=redis://redis:6379/0 flower --port=5555
+    container_name: music-analysis-flower
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
     ports:
       - "5555:5555"
     depends_on:
       - redis
+    networks:
+      - music-analysis
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: music-analysis-web
     environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    networks:
+      - music-analysis
+
+  # pgAdmin - Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: music-analysis-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - music-analysis
 
 volumes:
   postgres_data:
   redis_data:
+  pgadmin_data:
+
+networks:
+  music-analysis:
+    driver: bridge
