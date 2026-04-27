@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verse Map - Guia de Implementação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --primary-light: #a78bfa;
+            --secondary: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --border: #e5e7eb;
+            --text: #374151;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Navigation */
+        nav {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Sections */
+        section {
+            background: white;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            scroll-margin-top: 120px;
+        }
+
+        section h2 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        section h3 {
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        section h4 {
+            color: var(--text);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--dark);
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+
+        /* Cards */
+        .card {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .card.success {
+            border-left-color: var(--success);
+        }
+
+        .card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .card h4 {
+            margin-top: 0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: var(--light);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge.completed {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge.in-progress {
+            background: var(--warning);
+            color: white;
+        }
+
+        .badge.todo {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #0891b2;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .grid-item {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .grid-item h4 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-button {
+            padding: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Features Grid */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature h4 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+            border-left: 2px solid var(--primary);
+            padding-left: 2rem;
+            margin-left: -2rem;
+        }
+
+        .timeline-item:last-child {
+            border-left: none;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid white;
+        }
+
+        .timeline-item.completed::before {
+            background: var(--success);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        footer a {
+            color: var(--primary-light);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            section {
+                padding: 1.5rem;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            pre {
+                font-size: 0.8rem;
+                padding: 1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        section {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        /* Utility */
+        .mt-2 { margin-top: 1rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .text-center { text-align: center; }
+        .text-muted { color: #6b7280; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <h1>🎵 Verse Map</h1>
+        <p>Guia Completo de Implementação</p>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+        <ul>
+            <li><a href="#visao-geral">Visão Geral</a></li>
+            <li><a href="#arquitetura">Arquitetura</a></li>
+            <li><a href="#stack">Stack Tecnológico</a></li>
+            <li><a href="#fases">Fases</a></li>
+            <li><a href="#features">Funcionalidades</a></li>
+            <li><a href="#quick-start">Quick Start</a></li>
+            <li><a href="#repositorio">Repositório</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Visão Geral -->
+        <section id="visao-geral">
+            <h2>📋 Visão Geral</h2>
+            <p>
+                <strong>Verse Map</strong> é uma plataforma web completa para gestão musical de igrejas e organizações de louvor. 
+                A plataforma cobre desde a importação e análise automática de músicas até a execução ao vivo em cultos.
+            </p>
+            
+            <div class="card">
+                <h4>✨ Destaques</h4>
+                <ul>
+                    <li>Importação de música por URL do YouTube com análise automática</li>
+                    <li>Pipeline de análise assíncrona (BPM, tonalidade, estrutura)</li>
+                    <li>Editor de arranjos versionado e imutável</li>
+                    <li>Cifras editáveis com transposição de tom</li>
+                    <li>Biblioteca de músicas por organização</li>
+                    <li>Setlists com histórico imutável</li>
+                    <li>Modo Live para apresentações</li>
+                    <li>Multi-tenancy com isolamento completo</li>
+                    <li>Dashboard operacional com métricas</li>
+                    <li>Autenticação OAuth com controle de papéis</li>
+                </ul>
+            </div>
+
+            <div class="grid">
+                <div class="grid-item">
+                    <h4>📊 Estatísticas</h4>
+                    <ul>
+                        <li><strong>56</strong> arquivos criados</li>
+                        <li><strong>~8.000</strong> linhas de código</li>
+                        <li><strong>10</strong> commits</li>
+                        <li><strong>8</strong> fases completas</li>
+                    </ul>
+                </div>
+                <div class="grid-item">
+                    <h4>🎯 Componentes</h4>
+                    <ul>
+                        <li><strong>5</strong> routers FastAPI</li>
+                        <li><strong>4</strong> workers Celery</li>
+                        <li><strong>7</strong> páginas Next.js</li>
+                        <li><strong>14</strong> tabelas BD</li>
+                    </ul>
+                </div>
+                <div class="grid-item">
+                    <h4>✅ Testes</h4>
+                    <ul>
+                        <li><strong>50+</strong> testes unitários</li>
+                        <li><strong>30+</strong> testes E2E</li>
+                        <li><strong>40+</strong> cenários BDD</li>
+                        <li><strong>15+</strong> fixtures</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arquitetura -->
+        <section id="arquitetura">
+            <h2>🏗️ Arquitetura</h2>
+            
+            <h3>Componentes Principais</h3>
+            <div class="grid">
+                <div class="grid-item">
+                    <h4>🌐 Frontend</h4>
+                    <p><strong>Next.js 14</strong> + React 18 + TypeScript</p>
+                    <ul>
+                        <li>Biblioteca de músicas</li>
+                        <li>Editor de arranjos</li>
+                        <li>Gerenciador de setlists</li>
+                        <li>Modo live</li>
+                        <li>Dashboard</li>
+                    </ul>
+                </div>
+                <div class="grid-item">
+                    <h4>⚙️ Backend</h4>
+                    <p><strong>FastAPI</strong> + SQLAlchemy</p>
+                    <ul>
+                        <li>5 routers (health, songs, arrangements, setlists, auth)</li>
+                        <li>JWT authentication</li>
+                        <li>RLS multi-tenancy</li>
+                        <li>Audit logging</li>
+                        <li>Error handling</li>
+                    </ul>
+                </div>
+                <div class="grid-item">
+                    <h4>⚡ Workers</h4>
+                    <p><strong>Celery + Redis</strong></p>
+                    <ul>
+                        <li>Essentia (MIR)</li>
+                        <li>Demucs (Separação)</li>
+                        <li>Whisper (ASR)</li>
+                        <li>LLM (Semântico)</li>
+                    </ul>
+                </div>
+                <div class="grid-item">
+                    <h4>💾 Dados</h4>
+                    <p><strong>PostgreSQL 16</strong></p>
+                    <ul>
+                        <li>Row Level Security</li>
+                        <li>14 tabelas</li>
+                        <li>Migrations Alembic</li>
+                        <li>Backup automático</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Pipeline de Análise</h3>
+            <div class="card">
+                <pre>
+queued
+  ↓
+extracting_metadata (YouTube metadata)
+  ↓
+fetching_text (captions ou Whisper ASR)
+  ↓
+separating_sources (Demucs - opcional)
+  ↓
+analyzing_audio (Essentia: BPM, key, features)
+  ↓
+postprocessing_structure (LLM: labeling semântico)
+  ↓
+ready (pronto para edição)
+                </pre>
+            </div>
+        </section>
+
+        <!-- Stack Tecnológico -->
+        <section id="stack">
+            <h2>🛠️ Stack Tecnológico</h2>
+
+            <h3>Backend</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tecnologia</th>
+                        <th>Versão</th>
+                        <th>Uso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>FastAPI</td>
+                        <td>0.104+</td>
+                        <td>Framework web assíncrono</td>
+                    </tr>
+                    <tr>
+                        <td>SQLAlchemy</td>
+                        <td>2.0+</td>
+                        <td>ORM para banco de dados</td>
+                    </tr>
+                    <tr>
+                        <td>Pydantic</td>
+                        <td>2.0+</td>
+                        <td>Validação de dados</td>
+                    </tr>
+                    <tr>
+                        <td>Celery</td>
+                        <td>5.3+</td>
+                        <td>Fila de tarefas assíncrona</td>
+                    </tr>
+                    <tr>
+                        <td>Redis</td>
+                        <td>7.0+</td>
+                        <td>Message broker e cache</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Frontend</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tecnologia</th>
+                        <th>Versão</th>
+                        <th>Uso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Next.js</td>
+                        <td>14+</td>
+                        <td>Framework React</td>
+                    </tr>
+                    <tr>
+                        <td>React</td>
+                        <td>18+</td>
+                        <td>UI library</td>
+                    </tr>
+                    <tr>
+                        <td>TypeScript</td>
+                        <td>5.0+</td>
+                        <td>Type safety</td>
+                    </tr>
+                    <tr>
+                        <td>Tailwind CSS</td>
+                        <td>4.0+</td>
+                        <td>Styling</td>
+                    </tr>
+                    <tr>
+                        <td>Zustand</td>
+                        <td>4.0+</td>
+                        <td>State management</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Workers</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Worker</th>
+                        <th>Biblioteca</th>
+                        <th>Funcionalidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Audio Analysis</td>
+                        <td>Essentia</td>
+                        <td>BPM, Key, Sections, Chords</td>
+                    </tr>
+                    <tr>
+                        <td>Source Separation</td>
+                        <td>Demucs</td>
+                        <td>Vocal, Drums, Bass, Other</td>
+                    </tr>
+                    <tr>
+                        <td>Speech Recognition</td>
+                        <td>Whisper</td>
+                        <td>ASR com timestamps</td>
+                    </tr>
+                    <tr>
+                        <td>Semantic Analysis</td>
+                        <td>OpenAI LLM</td>
+                        <td>Labeling de seções</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Infraestrutura</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Serviço</th>
+                        <th>Versão</th>
+                        <th>Uso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PostgreSQL</td>
+                        <td>16</td>
+                        <td>Database principal</td>
+                    </tr>
+                    <tr>
+                        <td>Redis</td>
+                        <td>7</td>
+                        <td>Cache e message broker</td>
+                    </tr>
+                    <tr>
+                        <td>Docker</td>
+                        <td>24+</td>
+                        <td>Containerização</td>
+                    </tr>
+                    <tr>
+                        <td>Flower</td>
+                        <td>2.0+</td>
+                        <td>Monitoramento Celery</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Fases de Implementação -->
+        <section id="fases">
+            <h2>📅 Fases de Implementação</h2>
+
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 1: Arquitetura & Planejamento</h4>
+                    <p>Estrutura monorepo, modelos de domínio, schemas Pydantic, database schema, RLS, FastAPI setup, Celery tasks, BDD scenarios, unit tests, documentação.</p>
+                </div>
+
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 2: Backend FastAPI</h4>
+                    <p>Database utilities, authentication, authorization, integration tests, implementation guide.</p>
+                </div>
+
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 3: API Completa</h4>
+                    <p>Arrangements router, setlists router, auth router, CRUD operations, permissions, audit logging, comprehensive tests.</p>
+                </div>
+
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 4: Workers Celery</h4>
+                    <p>Essentia analyzer, Demucs separator, Whisper ASR, LLM labeler, pipeline orchestrator, fallback mechanisms.</p>
+                </div>
+
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 5: Frontend Next.js</h4>
+                    <p>Library page, import page, arrangement editor, setlist manager, live mode, API client, Zustand store, Tailwind CSS.</p>
+                </div>
+
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 6: Infraestrutura</h4>
+                    <p>Docker Compose (9 serviços), Dockerfiles, Postgres com RLS, Redis, migrations, environment setup, deployment guide.</p>
+                </div>
+
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 7: Testes E2E</h4>
+                    <p>Unit tests (50+), integration tests (15+), E2E tests (30+), BDD scenarios (40+), pytest config, test fixtures, testing guide.</p>
+                </div>
+
+                <div class="timeline-item completed">
+                    <h4><span class="badge completed">COMPLETA</span> Fase 8: GitHub & Entrega</h4>
+                    <p>Criar repositório verse-map-3, push de código, documentação final, guia de setup, entrega ao usuário.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Funcionalidades -->
+        <section id="features">
+            <h2>✨ Funcionalidades Principais</h2>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📥</div>
+                    <h4>Importação de Música</h4>
+                    <p>YouTube URL → Análise automática com 7 fases de processamento e polling de progresso em tempo real.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🎵</div>
+                    <h4>Análise Musical</h4>
+                    <p>BPM detection, key detection, seções, acordes com confidence scoring.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">✏️</div>
+                    <h4>Editor de Arranjos</h4>
+                    <p>Edição de seções, transposição de tons, versionamento imutável, publicação controlada.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🎼</div>
+                    <h4>Cifras Editáveis</h4>
+                    <p>Edição de acordes com transposição automática e sinalização de confiança harmônica.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📚</div>
+                    <h4>Biblioteca de Músicas</h4>
+                    <p>Catálogo organizado por organização com arranjos publicados.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🎤</div>
+                    <h4>Setlists</h4>
+                    <p>Criar, reordenar, executar com histórico imutável de apresentações.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🎬</div>
+                    <h4>Modo Live</h4>
+                    <p>Visualização limpa com tipografia grande, navegação por seções durante apresentação.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🏢</div>
+                    <h4>Multi-tenancy</h4>
+                    <p>Isolamento completo de dados por organização com RLS.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h4>Dashboard</h4>
+                    <p>Métricas operacionais: fila de análise, tempo médio, taxa de falha.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🔐</div>
+                    <h4>Autenticação</h4>
+                    <p>OAuth com controle de acesso por papel (Admin, Leader, Musician, Viewer).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start -->
+        <section id="quick-start">
+            <h2>🚀 Quick Start</h2>
+
+            <h3>1. Clonar Repositório</h3>
+            <pre>git clone https://github.com/luangitdev/verse-map-3.git
+cd verse-map-3</pre>
+
+            <h3>2. Configurar Ambiente</h3>
+            <pre>cp .env.example .env
+# Editar .env com suas variáveis</pre>
+
+            <h3>3. Iniciar Stack Completo</h3>
+            <pre>docker-compose up -d</pre>
+
+            <h3>4. Rodar Testes</h3>
+            <pre>pytest tests/ -v --cov=apps</pre>
+
+            <h3>5. Acessar Aplicação</h3>
+            <ul>
+                <li><strong>Frontend:</strong> http://localhost:3000</li>
+                <li><strong>API:</strong> http://localhost:8000</li>
+                <li><strong>Flower:</strong> http://localhost:5555</li>
+                <li><strong>pgAdmin:</strong> http://localhost:5050</li>
+            </ul>
+
+            <div class="card warning">
+                <h4>⚠️ Requisitos</h4>
+                <ul>
+                    <li>Docker & Docker Compose</li>
+                    <li>Python 3.11+</li>
+                    <li>Node.js 18+</li>
+                    <li>Git</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Documentação -->
+        <section id="documentacao">
+            <h2>📚 Documentação</h2>
+
+            <div class="grid">
+                <div class="grid-item">
+                    <h4>📖 Guias Principais</h4>
+                    <ul>
+                        <li>README.md - Visão geral</li>
+                        <li>FINAL_SUMMARY.md - Resumo executivo</li>
+                        <li>IMPLEMENTATION_GUIDE.md - Implementação</li>
+                        <li>API_REFERENCE.md - Endpoints</li>
+                    </ul>
+                </div>
+
+                <div class="grid-item">
+                    <h4>🔧 Guias Técnicos</h4>
+                    <ul>
+                        <li>WORKERS_GUIDE.md - Workers</li>
+                        <li>TESTING_GUIDE.md - Testes</li>
+                        <li>DEPLOYMENT_GUIDE.md - Deploy</li>
+                        <li>ENVIRONMENT_SETUP.md - Ambiente</li>
+                    </ul>
+                </div>
+
+                <div class="grid-item">
+                    <h4>🏗️ Arquitetura</h4>
+                    <ul>
+                        <li>MIGRATIONS_GUIDE.md - Migrations</li>
+                        <li>ADR-001-essentia-first.md - Essentia</li>
+                        <li>ADR-002-multi-tenant-rls.md - RLS</li>
+                        <li>GITHUB_SETUP.md - GitHub</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Repositório -->
+        <section id="repositorio">
+            <h2>📦 Repositório</h2>
+
+            <div class="card success">
+                <h4>✅ Repositório Criado</h4>
+                <p><strong>Nome:</strong> verse-map-3</p>
+                <p><strong>Link:</strong> <a href="https://github.com/luangitdev/verse-map-3" target="_blank">https://github.com/luangitdev/verse-map-3</a></p>
+                <p><strong>Visibilidade:</strong> Público</p>
+            </div>
+
+            <h3>Como Clonar</h3>
+            <pre>git clone https://github.com/luangitdev/verse-map-3.git</pre>
+
+            <h3>Estrutura do Repositório</h3>
+            <pre>verse-map-3/
+├── apps/
+│   ├── api/              ← FastAPI Backend
+│   ├── web/              ← Next.js Frontend
+│   ├── worker-audio/     ← Audio Workers
+│   └── worker-semantic/  ← LLM Worker
+├── packages/
+│   ├── domain/           ← Domain Models
+│   ├── contracts/        ← API Schemas
+│   └── test_fixtures/    ← Test Factories
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   ├── e2e/
+│   └── bdd/
+├── docs/                 ← Documentação
+├── docker-compose.yml
+└── README.md</pre>
+
+            <h3>Commits</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Commit</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>20175a6</td>
+                        <td>Initial project structure</td>
+                    </tr>
+                    <tr>
+                        <td>fb80735</td>
+                        <td>Phase 2: Backend implementation</td>
+                    </tr>
+                    <tr>
+                        <td>0733cd3</td>
+                        <td>Phase 3: Complete API implementation</td>
+                    </tr>
+                    <tr>
+                        <td>7d3d43f</td>
+                        <td>Phase 4: Worker implementation</td>
+                    </tr>
+                    <tr>
+                        <td>bafb68e</td>
+                        <td>Phase 5: Next.js frontend</td>
+                    </tr>
+                    <tr>
+                        <td>c9e8581</td>
+                        <td>Phase 6: Infrastructure setup</td>
+                    </tr>
+                    <tr>
+                        <td>a7b205a</td>
+                        <td>Phase 7: Comprehensive testing</td>
+                    </tr>
+                    <tr>
+                        <td>017c461</td>
+                        <td>Phase 8: GitHub setup</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Próximas Ações -->
+        <section id="proximas-acoes">
+            <h2>🎯 Próximas Ações</h2>
+
+            <div class="card">
+                <h4>Para Usar o Projeto</h4>
+                <ol>
+                    <li>Clone o repositório</li>
+                    <li>Configure as variáveis de ambiente (.env)</li>
+                    <li>Rode <code>docker-compose up -d</code></li>
+                    <li>Acesse http://localhost:3000</li>
+                </ol>
+            </div>
+
+            <div class="card">
+                <h4>Para Contribuir</h4>
+                <ol>
+                    <li>Fork o repositório</li>
+                    <li>Crie uma feature branch</li>
+                    <li>Faça commit das mudanças</li>
+                    <li>Abra um Pull Request</li>
+                </ol>
+            </div>
+
+            <div class="card warning">
+                <h4>⚠️ Considerações Importantes</h4>
+                <ul>
+                    <li>Arranjos publicados não podem ser editados</li>
+                    <li>Setlists executadas são imutáveis</li>
+                    <li>Histórico de apresentações é preservado</li>
+                    <li>Isolamento de dados por organização</li>
+                    <li>Papéis controlam permissões</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Verse Map. Desenvolvido com ❤️ para organizações de louvor.</p>
+        <p>
+            <a href="https://github.com/luangitdev/verse-map-3" target="_blank">GitHub</a> | 
+            <a href="https://github.com/luangitdev/verse-map-3/issues" target="_blank">Issues</a> | 
+            <a href="https://github.com/luangitdev/verse-map-3/discussions" target="_blank">Discussions</a>
+        </p>
+    </footer>
+
+    <script>
+        // Smooth scroll for navigation links
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Tab functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                
+                // Hide all tabs
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Remove active class from all buttons
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Show selected tab
+                document.getElementById(tabName).classList.add('active');
+                button.classList.add('active');
+            });
+        });
+
+        // Highlight code blocks
+        document.querySelectorAll('pre code').forEach(block => {
+            block.innerHTML = block.innerHTML.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        });
+    </script>
+</body>
+</html>
