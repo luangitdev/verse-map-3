@@ -3,7 +3,6 @@ FROM python:3.11-bullseye
 WORKDIR /app
 
 # Install system dependencies for audio processing
-# Using Debian Bullseye for better compatibility with audio libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -22,17 +21,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy requirements
-COPY requirements.txt .
+# Copy install script
+COPY install-deps.sh .
+RUN chmod +x install-deps.sh
 
-# Upgrade pip and install build tools
-RUN pip install --upgrade pip setuptools wheel --no-cache-dir
-
-# Install Python dependencies with longer timeout for large packages
-RUN pip install --no-cache-dir \
-    --default-timeout=1000 \
-    --retries 5 \
-    -r requirements.txt
+# Run install script
+RUN ./install-deps.sh
 
 # Copy application code
 COPY . .
