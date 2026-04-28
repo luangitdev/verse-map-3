@@ -28,9 +28,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant schema permissions
-GRANT USAGE ON SCHEMA app TO postgres;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA app TO postgres;
-
 -- Note: RLS policies and table creation are handled by the FastAPI application
 -- This ensures consistency between the ORM schema and database schema
