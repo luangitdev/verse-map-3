@@ -166,7 +166,7 @@ class SongSource(Base):
     source_type = Column(String(50), nullable=False)  # "youtube", "file", "url"
     source_url = Column(String(2048), nullable=False)
     video_id = Column(String(255))
-    metadata = Column(JSONB, default={})
+    source_metadata = Column(JSONB, default={})
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
