@@ -13,11 +13,23 @@ from sqlalchemy.orm import sessionmaker
 import logging
 from datetime import datetime
 import os
+import sys
+
+# Add parent directory to path so we can import packages
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 from models import Base
 from routers import songs, arrangements, setlists, health
 from middleware import set_organization_context
 from config import settings
+
+# Import from packages (now accessible via sys.path)
+try:
+    from packages.contracts import SongImportRequest
+except ImportError:
+    logger = logging.getLogger(__name__)
+    logger.warning("Could not import from packages, some features may be unavailable")
+    SongImportRequest = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -8,6 +8,11 @@ from sqlalchemy import select, and_
 from uuid import uuid4, UUID
 from datetime import datetime
 import logging
+import sys
+import os
+
+# Add parent directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from models import Song, SongSource, SongAnalysis, AnalysisPhaseEnum
 from packages.contracts import (
