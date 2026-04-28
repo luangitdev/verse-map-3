@@ -9,16 +9,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements.txt .
+COPY apps/api/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY apps/api . 
 
-# Copy packages from parent directory
-COPY ../packages /app/packages
+# Copy packages
+COPY packages /app/packages
 
 # Expose port
 EXPOSE 8000

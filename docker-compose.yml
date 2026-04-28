@@ -41,8 +41,8 @@ services:
   # FastAPI Backend
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/api/Dockerfile
     container_name: music-analysis-api
     environment:
       DATABASE_URL: postgresql://${DB_USER:-music_user}:${DB_PASSWORD:-music_password}@postgres:5432/${DB_NAME:-music_analysis}
