@@ -13,10 +13,7 @@ from sqlalchemy.orm import sessionmaker
 import logging
 from datetime import datetime
 import os
-import sys
 
-# Add parent directory to path so we can import packages
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 from models import Base
 from routers import songs, arrangements, setlists, health

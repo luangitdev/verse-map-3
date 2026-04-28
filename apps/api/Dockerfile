@@ -17,6 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Copy packages from parent directory
+COPY ../packages /app/packages
+
 # Expose port
 EXPOSE 8000
 
